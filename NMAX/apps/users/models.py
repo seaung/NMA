@@ -12,11 +12,12 @@ class Role(models.Model):
 
 
 class User(AbstractUser):
+    DEFAULT_ROLE_ID = 3
     user_email = models.TextField(blank=True, null=True, default=None, help_text=_('email addresses'))
     phone = models.CharField(max_length=12, blank=True, null=True, default=None, help_text=_('phone number'))
     update_time = models.DateTimeField(auto_now_add=True, verbose_name=_('updated time'))
     password_updated_time = models.DateTimeField(default=now, verbose_name=_('password updated time'))
-    role = models.ForeignKey(Role, related_name='users', null=False, on_delete=models.SET_DEFAULT)
+    role = models.ForeignKey(Role, related_name='users', null=False, on_delete=models.SET_DEFAULT, default=DEFAULT_ROLE_ID)
 
     def set_password(self, *args, **kwargs):
         self.password_updated_time = now()
