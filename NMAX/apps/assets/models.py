@@ -1,3 +1,10 @@
 from django.db import models
 
-# Create your models here.
+
+class HostAssetsModel(models.Model):
+    pass
+
+
+class PortAssetsModel(models.Model):
+    pass
+
