@@ -9,6 +9,7 @@ class HostAssetsModel(models.Model):
     manager = models.CharField(max_length=30, verbose_name=_('manager'))
 
     class Meta:
+        managed = False
         db_table = 'host_assets_model'
 
 
@@ -21,5 +22,6 @@ class PortAssetsModel(models.Model):
     manager = models.CharField(max_length=30, verbose_name=_('manager'))
 
     class Meta:
+        managed = False
         db_table = 'port_assets_model'
 
