@@ -11,6 +11,9 @@ class Role(models.Model):
     name = models.CharField(max_length=255, unique=True, null=False)
     created_time = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        db_table = 'nm_role'
+
 
 class User(AbstractUser):
     DEFAULT_ROLE_ID = 3
@@ -34,3 +37,12 @@ class User(AbstractUser):
     def is_expire(self) -> bool:
         return False
 
+    class Meta:
+        db_table = 'nm_users'
+
+
+class Permission(models.Model):
+    permission_id = models.IntegerField()
+
+    class Meta:
+        db_table = 'nm_permission'
