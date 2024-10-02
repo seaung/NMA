@@ -39,8 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework_simplejwt',
-    'apps.users',
-    'apps.assets',
+    'app',
 ]
 
 MIDDLEWARE = [
@@ -53,9 +52,9 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'NMAX.urls'
+ROOT_URLCONF = 'app.configs.urls'
 
-AUTH_USER_MODEL = 'users.User'
+AUTH_USER_MODEL = 'app.Users'
 
 TEMPLATES = [
     {
@@ -73,7 +72,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'NMAX.wsgi.application'
+WSGI_APPLICATION = 'app.configs.wsgi.application'
 
 
 # Database

@@ -4,9 +4,9 @@ from celery import Celery
 #from django.conf import settings
 
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'NMAX.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'app.configs.settings')
 
-app = Celery('NMAX')
+app = Celery('app')
 
 app.config_from_object('django.conf:settings', namespace='CELERY')
 
