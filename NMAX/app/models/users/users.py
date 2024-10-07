@@ -7,6 +7,7 @@ class Users(AbstractUser):
     nickname = models.CharField(max_length=32, unique=True, db_column='nickname', db_comment='用户昵称')
     email = models.EmailField(max_length=128, db_column='email', db_comment='电子邮件地址')
     password = models.CharField(max_length=255, db_column='password', db_comment='用户密码')
+    dept = models.ForeignKey(to='Departments', on_delete=models.CASCADE, db_constraint=False, null=True, blank=True)
     created_at = models.DateTimeField(db_column='created_at', db_comment='用户创建时间', auto_now=True)
     updated_at = models.DateTimeField(db_column='updated_at', db_comment='用户更新时间', auto_now=True)
 
