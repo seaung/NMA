@@ -2,24 +2,13 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 
 
-class TokenblackList(models.Model):
-    user_id = models.IntegerField(db_column='user_id', db_comment='用户id')
-    username = models.CharField(max_length=32, db_column='username', db_comment='用户名')
-    token = models.TextField(db_column='access_token', db_comment='access token')
-    created_at = models.DateTimeField(db_column='created_at', db_comment='创建时间', auto_now_add=True)
-
-    class Meta:
-        db_table = 'token_black_list'
-        db_table_comment = 'token黑名单记录'
-        ordering = ('-id', )
-
-
 class Users(AbstractUser):
     username = models.CharField(max_length=32, unique=True, db_column='username', db_comment='用户名')
     nickname = models.CharField(max_length=32, unique=True, db_column='nickname', db_comment='用户昵称')
     email = models.EmailField(max_length=128, db_column='email', db_comment='电子邮件地址')
     password = models.CharField(max_length=255, db_column='password', db_comment='用户密码')
     dept = models.ForeignKey(to='Departments', on_delete=models.CASCADE, db_constraint=False, null=True, blank=True)
+    roles = models.ForeignKey(to='Roles', on_delete=models.CASCADE, db_constraint=False, null=True, blank=True)
     created_at = models.DateTimeField(db_column='created_at', db_comment='用户创建时间', auto_now=True)
     updated_at = models.DateTimeField(db_column='updated_at', db_comment='用户更新时间', auto_now=True)
 
@@ -40,6 +29,8 @@ class Roles(models.Model):
     description = models.CharField(max_length=255, db_column='description', db_comment='角色描述')
     enable = models.BooleanField(default=True, db_column='enable', db_comment='是否开启')
     data_scope = models.CharField(max_length=255, db_column='data_scope', db_comment='数据作用范围')
+    menus = models.ManyToManyField('Menu', related_name='roles', blank=True)
+    departments = models.ManyToManyField('Departments', related_name='roles', blank=True)
     created_at = models.DateTimeField(db_column='created_at', db_comment='角色创建时间', auto_now=True)
     updated_at = models.DateTimeField(db_column='updated_at', db_comment='角色更新时间', auto_now=True)
 
