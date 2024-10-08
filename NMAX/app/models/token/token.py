@@ -6,11 +6,13 @@ Users = get_user_model()
 
 
 class TokenDisbacklistReacord(models.Model):
-    user = models.ForeignKey(Users, on_delete=models.CASCADE)
+    #user = models.ForeignKey(Users, on_delete=models.CASCADE)
+    user_id = models.IntegerField(db_column='user_id', db_comment='用户id')
+    username = models.CharField(max_length=32, db_column='username', db_comment='用户名')
     access_token = models.TextField(db_column='access_token', db_comment='access token')
     refresh_token = models.TextField(db_column='refresh_token', db_comment='refresh_token')
     created_at = models.DateTimeField(auto_now_add=True, db_column='created_at', db_comment='created time')
-    expires_at = models.DateTimeField(db_column='expires_at', db_comment='expires time')
+    #expires_at = models.DateTimeField(db_column='expires_at', db_comment='expires time')
 
     def __str__(self) -> str:
         return self.access_token

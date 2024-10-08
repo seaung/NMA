@@ -2,6 +2,18 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 
 
+class TokenblackList(models.Model):
+    user_id = models.IntegerField(db_column='user_id', db_comment='用户id')
+    username = models.CharField(max_length=32, db_column='username', db_comment='用户名')
+    token = models.TextField(db_column='access_token', db_comment='access token')
+    created_at = models.DateTimeField(db_column='created_at', db_comment='创建时间', auto_now_add=True)
+
+    class Meta:
+        db_table = 'token_black_list'
+        db_table_comment = 'token黑名单记录'
+        ordering = ('-id', )
+
+
 class Users(AbstractUser):
     username = models.CharField(max_length=32, unique=True, db_column='username', db_comment='用户名')
     nickname = models.CharField(max_length=32, unique=True, db_column='nickname', db_comment='用户昵称')
