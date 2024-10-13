@@ -47,7 +47,9 @@ class Roles(models.Model):
 
 class Departments(models.Model):
     name = models.CharField(max_length=50, db_column='name', db_comment='部门名称')
-    parent = models.ForeignKey(to='self', on_delete=models.CASCADE, null=True, blank=True, related_name='children')
+    parent = models.ForeignKey(to='self', on_delete=models.CASCADE, 
+                               null=True, blank=True, 
+                               db_constraint=False, related_name='children')
     owner = models.CharField(max_length=255, db_column='owner', db_comment='部门主管')
     created_at = models.DateTimeField(db_column='created_at', db_comment='部门创建时间', auto_now=True)
     updated_at = models.DateTimeField(db_column='updated_at', db_comment='部门更新时间', auto_now=True)

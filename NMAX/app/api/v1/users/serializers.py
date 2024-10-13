@@ -17,6 +17,25 @@ class RolesSerializers(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class CreatedRolesSerializers(serializers.ModelSerializer):
+    name = serializers.CharField(max_length=12, 
+                                 min_length=3, 
+                                 required=True,
+                                 error_messages={
+                                     'required': 'name是必填字段',
+                                     'max_length': '最大长度不能超过12',
+                                     'min_length': '最小长度不能小于3',
+                                     'blank': '字段不能为空',
+                                })
+    code = serializers.CharField(max_length=12, min_length=6,
+                                 required=True, error_messages={
+                                     'required': '字段是必填的',
+                                     'max_length': '最大长度不能超过12',
+                                     'min_length': '最小长度不能小于3',
+                                     'blank': '字段不能为空',
+                                })
+
+
 class DepartmentsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Departments
@@ -49,7 +68,6 @@ class LoginRequestSerializer(serializers.Serializer):
         if not user.check_password(password):
             raise ValidationError('用户名或密码错误')
 
-        #token = TokenObtainSerializer.get_token(user)
         token = RefreshToken.for_user(user)
 
         return {
@@ -60,8 +78,4 @@ class LoginRequestSerializer(serializers.Serializer):
                 'access_token': str(token.access_token),
                 'refresh_token': str(token),
         }
-
-    #class Meta:
-    #    model = Users
-    #    fields = ('id', 'username', 'nickname', 'email')
 

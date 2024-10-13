@@ -8,8 +8,12 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.serializers import TokenBlacklistSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .serializers import LoginRequestSerializer, MenuSerializers, PermissionSerializer, DepartmentsSerializer, RolesSerializers
+from .serializers import (
+        LoginRequestSerializer, MenuSerializers, 
+        PermissionSerializer, DepartmentsSerializer, 
+        RolesSerializers, CreatedRolesSerializers)
 from app.models.token.token import TokenDisbacklistReacord
+from app.models.users.users import Roles
 
 
 class LoginRequestAPIView(generics.GenericAPIView):
@@ -49,11 +53,43 @@ class LogoutUserGenericAPIView(generics.GenericAPIView):
 
 
 class RolesViewSets(viewsets.ModelViewSet):
-    ...
+    permission_classes = (permissions.IsAuthenticated, )
+    authentication_classes = (JWTAuthentication, )
+
+    def create(self, request: Request) -> Response:
+        serializer = CreatedRolesSerializers(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(status=status.HTTP_200_OK, data=serializer.validated_data)
+        return Response(status=status.HTTP_400_BAD_REQUEST, data={})
+
+    def list(self, request: Request) -> Response:
+        roles = Roles.objects.all()
+        serializer = RolesSerializers(roles, many=True)
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
+
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        return super().destroy(request, *args, **kwargs)
 
 
 class DepartmentsViewSets(viewsets.ModelViewSet):
-    ...
+    permission_classes = (permissions.IsAuthenticated, )
+    authentication_classes = (JWTAuthentication, )
+
+    def create(self, request: Request) -> Response:
+        return Response
+
+    def list(self, request, *args, **kwargs) -> Response:
+        return super().list(request, *args, **kwargs)
+
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        return super().destroy(request, *args, **kwargs)
 
 
 class MenuViewSets(viewsets.ModelViewSet):
