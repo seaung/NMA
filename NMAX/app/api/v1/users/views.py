@@ -1,3 +1,4 @@
+from django.contrib.auth.hashers import make_password, check_password
 from rest_framework import generics, viewsets
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -9,11 +10,44 @@ from rest_framework_simplejwt.serializers import TokenBlacklistSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .serializers import (
-        LoginRequestSerializer, MenuSerializers, 
+        ChangePasswordSerializer, CreatedUserSerializers, LoginRequestSerializer, MenuSerializers, 
         PermissionSerializer, DepartmentsSerializer, 
         RolesSerializers, CreatedRolesSerializers)
 from app.models.token.token import TokenDisbacklistReacord
 from app.models.users.users import Roles
+
+
+class UserManagerViewSets(viewsets.ModelViewSet):
+    permission_classes = (permissions.IsAuthenticated, )
+    authentication_classes = (JWTAuthentication, )
+
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return CreatedUserSerializers
+        elif self.action == 'update':
+            return ChangePasswordSerializer
+        return super().get_serializer_class()
+
+    def create(self, request: Request) -> Response:
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            password = make_password(request.data.get('password'))
+            serializer.save(password=password)
+            return Response(status=status.HTTP_201_CREATED, data={})
+        return Response(status=status.HTTP_200_OK, data={})
+
+    def update(self, request: Request) -> Response:
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            user = request.user
+            old_password = request.data.get('old_password')
+            if check_password(old_password, request.user.password):
+                if request.data.get('password') == request.data.get('new_password'):
+                    user.set_password(request.data.get('new_password'))
+                    user.save()
+                    return Response(status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
 
 
 class LoginRequestAPIView(generics.GenericAPIView):

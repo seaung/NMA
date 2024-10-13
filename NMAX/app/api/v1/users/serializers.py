@@ -17,6 +17,16 @@ class RolesSerializers(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class CreatedUserSerializers(serializers.Serializer):
+    username = serializers.CharField()
+    password = serializers.CharField()
+
+
+class ChangePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField()
+    new_password = serializers.CharField()
+
+
 class CreatedRolesSerializers(serializers.ModelSerializer):
     name = serializers.CharField(max_length=12, 
                                  min_length=3, 
