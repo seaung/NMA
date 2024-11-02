@@ -31,7 +31,7 @@ class UserManagerViewSets(viewsets.ModelViewSet):
     def create(self, request: Request) -> Response:
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
-            password = make_password(request.data.get('password'))
+            password = make_password(serializer.validated_data['password'])
             serializer.save(password=password)
             return Response(status=status.HTTP_201_CREATED, data={})
         return Response(status=status.HTTP_200_OK, data={})
@@ -40,10 +40,10 @@ class UserManagerViewSets(viewsets.ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             user = request.user
-            old_password = request.data.get('old_password')
-            if check_password(old_password, request.user.password):
-                if request.data.get('password') == request.data.get('new_password'):
-                    user.set_password(request.data.get('new_password'))
+            old_password = serializer.validated_data['old_password']
+            if check_password(old_password, user.password):
+                if serializer.validated_data['password'] == serializer.validated_data['new_password']:
+                    user.set_password(serializer.validated_data('new_password'))
                     user.save()
                     return Response(status=status.HTTP_200_OK)
         return Response(status=status.HTTP_400_BAD_REQUEST)
@@ -114,7 +114,7 @@ class DepartmentsViewSets(viewsets.ModelViewSet):
     authentication_classes = (JWTAuthentication, )
 
     def create(self, request: Request) -> Response:
-        return Response
+        return Response()
 
     def list(self, request, *args, **kwargs) -> Response:
         return super().list(request, *args, **kwargs)
