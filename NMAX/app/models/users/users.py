@@ -1,5 +1,6 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, Permission as DjangoPermission
+from django.utils import timezone
 
 
 class Users(AbstractUser):
@@ -7,8 +8,12 @@ class Users(AbstractUser):
     nickname = models.CharField(max_length=32, unique=True, db_column='nickname', db_comment='用户昵称')
     email = models.EmailField(max_length=128, db_column='email', db_comment='电子邮件地址')
     password = models.CharField(max_length=255, db_column='password', db_comment='用户密码')
-    dept = models.ForeignKey(to='Departments', on_delete=models.CASCADE, db_constraint=False, null=True, blank=True)
-    roles = models.ForeignKey(to='Roles', on_delete=models.CASCADE, db_constraint=False, null=True, blank=True)
+    dept = models.ForeignKey(to='Departments', on_delete=models.SET_NULL, db_constraint=False, null=True, blank=True)
+    roles = models.ManyToManyField(to='Roles', related_name='users', blank=True)
+    permissions = models.ManyToManyField(to='Permission', related_name='users', blank=True)
+    is_active = models.BooleanField(default=True, db_column='is_active', db_comment='是否激活')
+    last_login_ip = models.GenericIPAddressField(null=True, blank=True, db_column='last_login_ip', db_comment='最后登录IP')
+    last_login_time = models.DateTimeField(null=True, blank=True, db_column='last_login_time', db_comment='最后登录时间')
     created_at = models.DateTimeField(db_column='created_at', db_comment='用户创建时间', auto_now=True)
     updated_at = models.DateTimeField(db_column='updated_at', db_comment='用户更新时间', auto_now=True)
 
@@ -25,12 +30,26 @@ class Users(AbstractUser):
 
 
 class Roles(models.Model):
+    ROLE_TYPES = (
+        ('SYSTEM', '系统角色'),
+        ('CUSTOM', '自定义角色')
+    )
+    DATA_SCOPE_CHOICES = (
+        ('ALL', '全部数据权限'),
+        ('CUSTOM', '自定义数据权限'),
+        ('DEPT', '本部门数据权限'),
+        ('DEPT_AND_CHILD', '本部门及以下数据权限'),
+        ('SELF', '仅本人数据权限')
+    )
     name = models.CharField(max_length=50, db_column='name', db_comment='角色名称')
+    code = models.CharField(max_length=50, unique=True, db_column='code', db_comment='角色标识码')
+    role_type = models.CharField(max_length=20, choices=ROLE_TYPES, default='CUSTOM', db_column='role_type', db_comment='角色类型')
     description = models.CharField(max_length=255, db_column='description', db_comment='角色描述')
     enable = models.BooleanField(default=True, db_column='enable', db_comment='是否开启')
-    data_scope = models.CharField(max_length=255, db_column='data_scope', db_comment='数据作用范围')
+    data_scope = models.CharField(max_length=20, choices=DATA_SCOPE_CHOICES, default='SELF', db_column='data_scope', db_comment='数据权限范围')
     menus = models.ManyToManyField('Menu', related_name='roles', blank=True)
     departments = models.ManyToManyField('Departments', related_name='roles', blank=True)
+    permissions = models.ManyToManyField('Permission', related_name='roles', blank=True)
     created_at = models.DateTimeField(db_column='created_at', db_comment='角色创建时间', auto_now=True)
     updated_at = models.DateTimeField(db_column='updated_at', db_comment='角色更新时间', auto_now=True)
 
@@ -67,9 +86,20 @@ class Departments(models.Model):
 
 
 class Permission(models.Model):
+    PERMISSION_TYPES = (
+        ('MENU', '菜单权限'),
+        ('OPERATION', '操作权限'),
+        ('API', 'API权限')
+    )
     name = models.CharField(max_length=25, unique=True, db_column='name', db_comment='权限名称')
     code = models.CharField(max_length=32, unique=True, db_column='code', db_comment='权限表示码')
     description = models.CharField(max_length=255, db_column='description', db_comment='权限描述')
+    type = models.CharField(max_length=20, choices=PERMISSION_TYPES, default='OPERATION', db_column='type', db_comment='权限类型')
+    parent = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE, related_name='children', db_comment='父级权限')
+    api_path = models.CharField(max_length=255, null=True, blank=True, db_column='api_path', db_comment='API路径')
+    method = models.CharField(max_length=20, null=True, blank=True, db_column='method', db_comment='HTTP方法')
+    created_at = models.DateTimeField(auto_now_add=True, db_column='created_at', db_comment='创建时间')
+    updated_at = models.DateTimeField(auto_now=True, db_column='updated_at', db_comment='更新时间')
 
     def __str__(self) -> str:
         return self.name
