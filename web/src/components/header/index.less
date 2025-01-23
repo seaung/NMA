@@ -1,0 +1,42 @@
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 24px;
+    height: 64px;
+    background: #fff;
+    box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
+
+    .header-left {
+        .trigger {
+            font-size: 18px;
+            cursor: pointer;
+            transition: color 0.3s;
+
+            &:hover {
+                color: #1890ff;
+            }
+        }
+    }
+
+    .header-right {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+
+        .theme-switch {
+            margin-right: 8px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            gap: 8px;
+
+            .username {
+                margin-left: 8px;
+            }
+        }
+    }
+}
