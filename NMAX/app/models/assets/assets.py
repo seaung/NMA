@@ -31,8 +31,8 @@ class Assets(models.Model):
     location = models.CharField('位置', max_length=100)
     manufacturer = models.CharField('制造商', max_length=100)
     model = models.CharField('型号', max_length=100)
-    owner = models.ForeignKey('users.Users', on_delete=models.SET_NULL, null=True, verbose_name='负责人')
-    department = models.ForeignKey('users.Departments', on_delete=models.SET_NULL, null=True, verbose_name='所属部门')
+    owner = models.ForeignKey('app.Users', on_delete=models.SET_NULL, null=True, verbose_name='负责人')
+    department = models.ForeignKey('app.Departments', on_delete=models.SET_NULL, null=True, verbose_name='所属部门')
     created_at = models.DateTimeField('创建时间', default=timezone.now)
     updated_at = models.DateTimeField('更新时间', auto_now=True)
 

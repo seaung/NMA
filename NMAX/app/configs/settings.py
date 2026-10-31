@@ -11,21 +11,32 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
+import os
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# 读取项目根目录下的 .env 配置（不覆盖已存在的环境变量）
+load_dotenv(BASE_DIR / '.env')
+
+
+def env(key, default=None):
+    return os.environ.get(key, default)
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-hl1+8po_19wafmy_q%1ga83%9fn%*gi3^)o#n6m$#5*6z9#_8u'
+SECRET_KEY = env('DJANGO_SECRET_KEY', 'django-insecure-hl1+8po_19wafmy_q%1ga83%9fn%*gi3^)o#n6m$#5*6z9#_8u')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env('DJANGO_DEBUG', 'true').lower() in ('1', 'true', 'yes')
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = env('DJANGO_ALLOWED_HOSTS', '*').split(',')
+
+CSRF_TRUSTED_ORIGINS = env('DJANGO_CSRF_TRUSTED_ORIGINS', 'http://localhost:5173,http://127.0.0.1:5173').split(',')
 
 
 # Application definition
@@ -39,12 +50,14 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework_simplejwt',
+    'corsheaders',
     'app',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -80,10 +93,43 @@ WSGI_APPLICATION = 'app.configs.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': env('DB_NAME', 'nma'),
+        'USER': env('DB_USER', 'postgres'),
+        'PASSWORD': env('DB_PASSWORD', '123456'),
+        'HOST': env('DB_HOST', '127.0.0.1'),
+        'PORT': env('DB_PORT', '5432'),
+        'CONN_MAX_AGE': int(env('DB_CONN_MAX_AGE', '60')),
     }
 }
+
+
+# DRF
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10,
+}
+
+
+# SimpleJWT
+from datetime import timedelta
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=int(env('JWT_ACCESS_MINUTES', '30'))),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=int(env('JWT_REFRESH_DAYS', '7'))),
+    'ROTATE_REFRESH_TOKENS': False,
+    'BLACKLIST_AFTER_ROTATION': False,
+    'AUTH_HEADER_TYPES': ('Bearer',),
+}
+
+# CORS（开发期放开，生产通过 .env 限制）
+CORS_ALLOW_ALL_ORIGINS = env('CORS_ALLOW_ALL', 'true').lower() in ('1', 'true', 'yes')
 
 
 # Password validation
@@ -108,9 +154,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'zh-hans'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Shanghai'
 
 USE_I18N = True
 
@@ -127,9 +173,11 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0' # Broker配置，使用Redis作为消息中间件
+_redisslave = "redis://{}:{}/0".format(env('REDIS_HOST', '127.0.0.1'), env('REDIS_PORT', '6379'))
 
-CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379/0' # BACKEND配置，这里使用redis
+CELERY_BROKER_URL = _redisslave  # Broker配置，使用Redis作为消息中间件
+
+CELERY_RESULT_BACKEND = _redisslave  # BACKEND配置，这里使用redis
 
 CELERY_RESULT_SERIALIZER = 'json' # 结果序列化方案
 

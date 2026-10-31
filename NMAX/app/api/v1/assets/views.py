@@ -30,7 +30,9 @@ class AssetsManagerViewSets(viewsets.ModelViewSet):
         
         # 如果不是超级用户，只能查看自己部门的资产
         if not user.is_superuser:
-            queryset = queryset.filter(department=user.department)
+            dept = getattr(user, 'dept', None)
+            if dept:
+                queryset = queryset.filter(department=dept)
             
         # 根据查询参数过滤
         search = self.request.query_params.get('search', '')

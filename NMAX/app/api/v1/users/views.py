@@ -14,37 +14,39 @@ from .serializers import (
         PermissionSerializer, DepartmentsSerializer, 
         RolesSerializers, CreatedRolesSerializers)
 from app.models.token.token import TokenDisbacklistReacord
-from app.models.users.users import Roles
+from app.models.users.users import Roles, Departments, Menu, Users
 
 
 class UserManagerViewSets(viewsets.ModelViewSet):
     """用户管理视图集
-    
+
     提供用户的创建、更新等管理功能
     需要JWT认证和登录权限
     """
+    queryset = Users.objects.all()
+    serializer_class = CreatedUserSerializers
     permission_classes = (permissions.IsAuthenticated, )
     authentication_classes = (JWTAuthentication, )
 
     def get_serializer_class(self):
         """根据不同的操作返回对应的序列化器类
-        
+
         create: 返回用户创建序列化器
         update: 返回密码修改序列化器
         其他: 返回父类默认序列化器
         """
         if self.action == 'create':
             return CreatedUserSerializers
-        elif self.action == 'update':
+        elif self.action == 'update' or self.action == 'partial_update':
             return ChangePasswordSerializer
         return super().get_serializer_class()
 
     def create(self, request: Request) -> Response:
         """创建新用户
-        
+
         Args:
             request: 包含用户名和密码的请求
-            
+
         Returns:
             201: 用户创建成功
             200: 验证失败
@@ -56,12 +58,12 @@ class UserManagerViewSets(viewsets.ModelViewSet):
             return Response(status=status.HTTP_201_CREATED, data={})
         return Response(status=status.HTTP_200_OK, data={})
 
-    def update(self, request: Request) -> Response:
+    def update(self, request: Request, *args, **kwargs) -> Response:
         """修改用户密码
-        
+
         Args:
             request: 包含旧密码和新密码的请求
-            
+
         Returns:
             200: 密码修改成功
             400: 验证失败
@@ -71,10 +73,9 @@ class UserManagerViewSets(viewsets.ModelViewSet):
             user = request.user
             old_password = serializer.validated_data['old_password']
             if check_password(old_password, user.password):
-                if serializer.validated_data['password'] == serializer.validated_data['new_password']:
-                    user.set_password(serializer.validated_data('new_password'))
-                    user.save()
-                    return Response(status=status.HTTP_200_OK)
+                user.set_password(serializer.validated_data['new_password'])
+                user.save()
+                return Response(status=status.HTTP_200_OK)
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -143,10 +144,12 @@ class LogoutUserGenericAPIView(generics.GenericAPIView):
 
 class RolesViewSets(viewsets.ModelViewSet):
     """角色管理视图集
-    
+
     提供角色的增删改查功能
     需要JWT认证和登录权限
     """
+    queryset = Roles.objects.all()
+    serializer_class = RolesSerializers
     permission_classes = (permissions.IsAuthenticated, )
     authentication_classes = (JWTAuthentication, )
 
@@ -187,19 +190,21 @@ class RolesViewSets(viewsets.ModelViewSet):
 
 class DepartmentsViewSets(viewsets.ModelViewSet):
     """部门管理视图集
-    
+
     提供部门的增删改查功能
     需要JWT认证和登录权限
     """
+    queryset = Departments.objects.all()
+    serializer_class = DepartmentsSerializer
     permission_classes = (permissions.IsAuthenticated, )
     authentication_classes = (JWTAuthentication, )
 
     def create(self, request: Request) -> Response:
         """创建新部门
-        
+
         Args:
             request: 包含部门信息的请求
-            
+
         Returns:
             201: 创建成功
             400: 创建失败
@@ -212,22 +217,12 @@ class DepartmentsViewSets(viewsets.ModelViewSet):
 
     def list(self, request: Request) -> Response:
         """获取所有部门列表
-        
+
         Returns:
             200: 返回部门列表
         """
         departments = Departments.objects.all()
         serializer = DepartmentsSerializer(departments, many=True)
-        return Response(data=serializer.data, status=status.HTTP_200_OK)
-
-    def retrieve(self, request: Request, *args, **kwargs) -> Response:
-        """获取单个部门详情
-        
-        Returns:
-            200: 返回部门详情
-        """
-        user = self.get_object()
-        serializer = CreatedUserSerializers(user)
         return Response(data=serializer.data, status=status.HTTP_200_OK)
 
     def retrieve(self, request, *args, **kwargs):
@@ -248,6 +243,7 @@ class MenuViewSets(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticated, )
     authentication_classes = (JWTAuthentication, )
     serializer_class = MenuSerializers
+    queryset = Menu.objects.all()
 
     def create(self, request: Request) -> Response:
         """创建新菜单
